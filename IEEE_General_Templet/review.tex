@@ -1,0 +1,94 @@
+%\documentclass[10pt,conference]{IEEEtran}
+%\documentclass[10pt, final, journal, letterpaper, twocolumn]{IEEEtran}
+\documentclass[12pt, draftclsnofoot, journal, letterpaper, onecolumn]{IEEEtran}
+
+%\documentclass[a4paper,11pt]{article}
+
+%\documentclass[conference]{IEEEtran}
+\makeatletter
+\def\ps@headings{%
+\def\@oddhead{\mbox{}\scriptsize\rightmark \hfil \thepage}%
+\def\@evenhead{\scriptsize\thepage \hfil \leftmark\mbox{}}%
+\def\@oddfoot{}%
+\def\@evenfoot{}}
+\makeatother \pagestyle{headings}
+
+\IEEEoverridecommandlockouts
+\usepackage{bbm}
+\usepackage{amsfonts}
+\usepackage[dvips]{graphicx}
+\usepackage{times}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{array}
+%\usepackage{chgbar}
+\usepackage{amssymb}
+\newcommand{\mb}{\mathbf}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\sss}{\scriptscriptstyle}
+\newcounter{mytempeqncnt}
+\usepackage{stfloats}
+\usepackage{slashbox}
+\usepackage{graphicx}
+\usepackage{footnote}
+%\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+%\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{subeqnarray}
+\usepackage{cases}
+\usepackage{threeparttable}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{epstopdf}
+\usepackage{algpseudocode}
+\usepackage{bm}
+%\usepackage{subcaption}
+\usepackage{multirow}
+% to add parentheses around subfig references
+\usepackage[labelformat=simple]{subcaption}
+%\usepackage[labelfont=small]{caption}
+\usepackage{adjustbox}
+%http://tex.stackexchange.com/questions/163246/resize-a-tabular-object-to-textwidth
+\renewcommand\thesubfigure{(\alph{subfigure})}
+\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{corollary}{Corollary}
+
+% line break in a table
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+\begin{document}
+
+\title{Review of Reconfigurable Intelligent Surface}
+
+
+\author{\authorblockN{Tianzheng Miao}\\
+\authorblockA{SSE, Chinese University of HongKong, Shenzhen
+}
+}
+
+\maketitle
+
+\vspace{-1.5cm}
+\section{Introduction}
+The demand for wireless communication services has been shifting from connection-oriented services such as, traditional voice telephony and messaging to content-oriented services such as digital media, social networking and smartphone applications.
+This phenomenon propels the development of content-centric wireless networks\cite{liuhui}.
+Recently, to support the dramatic growth of the wireless data traffic, caching at base stations (BSs) has been proposed as a promising approach for massive content delivery\cite{femto}. Moreover, enabling multicast service at BSs is an efficient way to deliver contents to multiple requesters simultaneously\cite{embms}.
+\section{System Model}
+We consider a IRS-based target detection system as illustrated in Fig. 1, where a base station(BS) can detect a moving car based on echo signal reflected by the IRS that consists of $L$ passive reflecting elements fixed on the car. Over $N$ observations, BS consecutively sends single directional probing signals and IRS forms different single directional beams which can cover the whole space. The passive reflecting states are drawn from a pre-designed codebook \textbf{$\Phi$}. Let \textbf{$\Phi$}
+% \centering
+% \begin{figure*}
+% \includegraphics[width=0.75\textwidth]{systemmodel.png}
+% \caption{PSD diagram}
+% \label{fig:1}       % Give a unique label
+% \end{figure*}
+
+\bibliographystyle{IEEEtran}
+\bibliography{review}
+
+\end{document}

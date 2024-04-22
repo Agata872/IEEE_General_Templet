@@ -1,0 +1,443 @@
+%\documentclass[10pt,conference]{IEEEtran}
+%\documentclass[10pt, final, journal, letterpaper, twocolumn]{IEEEtran}
+%\documentclass[12pt, draftclsnofoot, journal, letterpaper, onecolumn]{IEEEtran}
+
+%\documentclass[a4paper,11pt]{article}
+
+\documentclass[conference]{IEEEtran}
+\makeatletter
+\def\ps@headings{%
+\def\@oddhead{\mbox{}\scriptsize\rightmark \hfil \thepage}%
+\def\@evenhead{\scriptsize\thepage \hfil \leftmark\mbox{}}%
+\def\@oddfoot{}%
+\def\@evenfoot{}}
+\makeatother \pagestyle{headings}
+
+\IEEEoverridecommandlockouts
+\usepackage{bbm}
+\usepackage{amsfonts}
+\usepackage[dvips]{graphicx}
+\usepackage{times}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{array}
+%\usepackage{chgbar}
+\usepackage{amssymb}
+\newcommand{\mb}{\mathbf}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\sss}{\scriptscriptstyle}
+\newcounter{mytempeqncnt}
+\usepackage{stfloats}
+\usepackage{slashbox}
+\usepackage{graphicx}
+\usepackage{footnote}
+%\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+%\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{subeqnarray}
+\usepackage{cases}
+\usepackage{threeparttable}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{epstopdf}
+\usepackage{algpseudocode}
+\usepackage{bm}
+%\usepackage{subcaption}
+\usepackage{multirow}
+% to add parentheses around subfig references
+\usepackage[labelformat=simple]{subcaption}
+%\usepackage[labelfont=small]{caption}
+\usepackage{adjustbox}
+%http://tex.stackexchange.com/questions/163246/resize-a-tabular-object-to-textwidth
+\renewcommand\thesubfigure{(\alph{subfigure})}
+\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{corollary}{Corollary}
+
+% line break in a table
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+\begin{document}
+
+\title{Optimal Dynamic Multicast Scheduling for Cache-Enabled Content-Centric  Wireless Networks}
+
+
+\author{\authorblockN{Bo Zhou, Ying Cui and Meixia Tao}
+\authorblockA{Dept. of Electronic Engineering, Shanghai Jiao Tong University, Shanghai, China\\
+Emails: \{b.zhou, cuiying, mxtao\}@sjtu.edu.cn%\vspace{-0.6cm}
+}
+\thanks{This work was supported by the NSF of China under grants 61401272, 61322102 and 61221001.}
+}
+
+\maketitle
+
+\vspace{-1.5cm}
+\begin{abstract}
+Caching and multicasting at base stations are two promising approaches to support massive content delivery over wireless networks.
+However, existing scheduling designs do not make full use of the advantages of the two approaches.
+In this paper, we consider the optimal dynamic multicast scheduling to jointly minimize the average delay, power and  fetching costs for cache-enabled content-centric wireless networks. We formulate this stochastic optimization problem as an infinite horizon average cost Markov decision process (MDP). It is well-known to be a difficult problem and there generally only exist numerical solutions. By using \emph{relative value iteration algorithm} and the special structures of the request queue dynamics, we analyze the properties of the value function and the state-action cost function of the MDP for both the uniform and nonuniform channel cases. Based on these properties, we show that the optimal policy, which is adaptive to the request queue state, has a switch structure in the uniform case and a partial switch structure in the nonuniform case. Moreover, in the uniform case with two contents, we show that the switch curve is monotonically non-decreasing. The optimality properties obtained in this paper can provide design insights for practical networks.
+\end{abstract}
+\section{Introduction}
+The demand for wireless communication services has been shifting from connection-oriented services such as, traditional voice telephony and messaging to content-oriented services such as digital media, social networking and smartphone applications.
+This phenomenon propels the development of content-centric wireless networks\cite{liuhui}.
+Recently, to support the dramatic growth of the wireless data traffic, caching at base stations (BSs) has been proposed as a promising approach for massive content delivery\cite{femto}. Moreover, enabling multicast service at BSs is an efficient way to deliver contents to multiple requesters simultaneously\cite{embms}.
+
+Many content-centric applications are delay-sensitive and it is critical to consider delay performance in cache-enabled content-centric wireless networks.
+To support delay-sensitive services, multicast scheduling has been considered in the literature.
+For example, in \cite{wcnc}, the authors consider multicasting for inelastic services (with strict deadlines) in cache-enabled small-cell networks.
+A heuristic caching algorithm is proposed to reduce the service cost.
+In \cite{ton}, the authors consider  multicasting for inelastic services in cache-enabled multi-cell networks.
+A joint throughput-optimal caching and scheduling algorithm is proposed to maximize the service rates of inelastic services.
+However, \cite{wcnc} and \cite{ton}  assume that the users have uniform channel conditions, and hence all the users can be served simultaneously by a single multicast transmission.
+It remains unclear how to design multicast scheduling to make full use of the broadcast nature of the wireless medium when users have nonuniform channel conditions.
+%There are delay-aware services without strict deadlines (elastic services). For these elastic services,
+Moreover, for delay-sensitive services without strict deadlines, it is unknown how to design optimal multicast scheduling by exploiting the tradeoff between the delay cost and the service cost.
+
+In this paper, we shall address the above issues.
+We consider a cache-enabled content-centric wireless network with one BS, $K$ users (with possibly different channel conditions) and $M$ contents (with possibly different content sizes).
+The BS stores a certain number of contents in its cache and can fetch any uncached content from the core network through a backhaul link, with a fetching cost depending on the content size. In each slot, the BS schedules one content for multicasting to serve the users' pending requests, with a power cost depending on both the content size and the channel conditions of the users being served. We consider the optimal dynamic multicast scheduling to jointly minimize the average delay, power and fetching costs. We formulate this stochastic optimization problem as an infinite horizon average cost Markov decision process (MDP)\cite{bertsekas}. There are several technical challenges involved.
+
+  $\bullet$ \textbf{Optimality analysis:} The infinite horizon average cost MDP is well-known to be a difficult problem. While dynamic programming represents a systematic approach for MDPs, there generally exist only numerical solutions,  which do not typically offer many design insights, and are usually not practical due to the curse of dimensionality\cite{bertsekas}.
+ Therefore, it is desirable to analyze the structures of the optimal policies. However, existing structural analysis is mainly for simple queueing systems, e.g., two-queue systems\cite{cdc,switch} or queueing systems with symmetric arrivals\cite{batch}.  In this work, we consider a multiple-queue system with general request arrivals, channel conditions and content sizes. Therefore, the structural analysis in our problem is more challenging.
+
+  $\bullet$ \textbf{Optimal scheduling for parallel queues:} The considered problem in this work can be treated as the problem of scheduling a broadcast server to parallel queues  with general arrivals and switching costs. Several existing works have studied the related problems\cite{cdc,switch,batch}. In particular, \cite{cdc} and \cite{batch} consider the problems of scheduling a broadcast server to a two-queue system with general arrivals and a multiple-queue system with symmetric arrivals, respectively.
+  Reference \cite{switch} studies the problem of scheduling a single server (without broadcast capability) to two queues with switching costs.
+  Note that, the switching costs, which relate to the fetching costs in our problem, are not considered in \cite{batch,cdc}, and the  broadcast capability is not considered for the server in \cite{switch}.
+  To the best of our knowledge, the optimal scheduling of a broadcast server to parallel queues with general arrivals and switching costs remains unknown and is highly nontrivial.
+
+In this paper, we consider the uniform and nonuniform channel cases.
+By using \emph{relative value iteration algorithm} (RVIA)\cite{bertsekas} and the special structures of the request queue dynamics, as well as the power and fetching costs, we analyze the properties of the value function and the state-action cost function of the MDP for both the uniform and nonuniform cases.
+Based on these properties, for the uniform case, we show that the optimal policy has a switch structure. In particular, the request queue state space is divided into $M$ regions corresponding to the $M$ contents.
+The optimal policy schedules a content for multicasting when the request queue state falls in the region corresponding to the content.
+For the uniform case with two contents, we further show that the switch curve is monotonically non-decreasing.
+%This indicates that, the threshold to schedule one content (on its request queue length) increases with the increase of the request queue length of the other content.
+Next, for the nonuniform case, we show that the optimal policy has a partial switch structure, which is similar to the switch structure in the uniform case. The difference reflects the channel asymmetry among the users.
+The analytical results obtained in this paper can provide insights for designing computationally efficient multicast scheduling algorithms in practical cache-enabled content-centric wireless networks.
+\section{Network Model}
+As illustrated in Fig.~\ref{fig:systemmodel}, we consider a cache-enabled content-centric wireless network with one BS, $K$ users and $M$ contents.
+Let $\mathcal{K}=\{1,2,\cdots,K\}$ denote the set of users, where each user $k\in\mathcal{K}$ can represent a group of users in the same location.
+Let $\mathcal{M}=\{1,2,\cdots,M\}$ denote the set of contents, where content $m\in\mathcal{M}$ has the size of $l_m$ (in bits).
+Consider time slots of unit length (without loss of generality), and indexed by $t=1,2,\cdots$.
+In each slot, each user submits content requests to the BS according to a general distribution.
+The BS maintains request queues for different contents, which are implemented using \emph{counters}.
+The BS is equipped with a cache storing a certain number of contents, depending on the cache size and the sizes of the cached contents.
+We assume the contents stored in the cache are given\footnote{Caching is in a much larger time-scale and in this work, we consider multicast scheduling in a shorter time-scale for a given caching design.}.
+Let $\mathcal{C}\subset\mathcal{M}$ denote the set of cached contents.
+The BS can fetch any uncached content from the core network through a backhaul link, with a fetching cost depending on the content size.
+In each slot, the BS schedules one content for multicasting to serve the users' pending requests, with a power cost depending on both the content size and the channel conditions of the users being served. In the following, we elaborate on the physical layer model, the service model and the request model.
+\begin{figure}[t]
+\begin{centering}
+\vspace{-0.2cm}
+\includegraphics[scale=.55]{cache.eps}
+\vspace{-0.1cm}
+ \caption{\small{Cache-enabled content-centric wireless network.}}\label{fig:systemmodel}
+\end{centering}
+\vspace{-0.3cm}
+\end{figure}
+\subsection{Physical Layer Model}
+We assume that the duration of the scheduling slot is long enough to average the small-scale channel fading process, and hence the ergodic capacity can be achieved using channel coding.
+Let $h_k$ denote the average channel gain between user $k$ and the BS.
+Assume that only one content is delivered in each slot.
+Let $p(m,k)$ denote the minimum transmission power required for delivering content $m$ to user $k$ within a scheduling slot.
+Assume $p(m,k)$ satsifies $p(m,k)=y(h_k,l_m)$, where $y(h,l)$ is monotonically non-increasing with $h$ for all $l\geq 0$.
+Without loss of generality, we assume that $h_1\geq h_2\geq\cdots\geq h_K$, which implies $p(m,1)\leq p(m,2)\leq\cdots \leq p(m,K)$ for all $m$. In this paper, we consider the uniform and nonuniform channel cases.  In the uniform case, the channel gains of different users are the same, and hence, we have $p(m,1)=p(m,2)=\cdots=p(m,K)\triangleq p(m)$ for each $m$. In the nonuniform case, the channel gains of different users can be different, and hence for each $m$, $p(m,k)$ can be different for different users.
+\subsection{Service Model}
+We consider multicast service for content delivery.
+In each slot, the BS schedules one content for multicasting to serve the users' pending requests.
+Let $\mathcal{K}(m,t)\in\mathcal{K}$ denote the set of users who have pending requests for content $m$ at slot $t$.
+Let $u(t)\in\mathcal{M}$ denote the content scheduled for multicasting at slot $t$.
+If content $u(t)$ is cached (i.e., $u(t)\in\mathcal{C}$), the BS transmits it to all the users in $\mathcal{K}(u(t),t)$ directly; otherwise, the BS first downloads $u(t)$ from the core network through the backhaul link, then multicasts it to the users in $\mathcal{K}(u(t),t)$ and finally discards it after the transmission.
+
+Next, we illustrate the fetching and power costs. Let $c(m)$ denote the cost for fetching content $m$ via the backhaul link, depending on the content size.
+Then, the fetching cost is given by
+\begin{equation}
+f(m)\triangleq\mathbf{1}(m\not\in\mathcal{C})c(m),\label{eqn:fetchcost}
+\end{equation}
+where $\mathbf{1}(\cdot)$ denotes the indicator function.
+Let $k^*(m,t)\in\mathcal{K}(m,t)$ denote the user who requires the highest transmission power among the users in $\mathcal{K}(m,t)$, i.e., $k^*(m,t)\triangleq\max \mathcal{K}(m,t)$.
+Then, to deliver content $m$ to all the users in $\mathcal{K}(m,t)$ within a slot, the power cost $p(m,t)$ is given by
+\begin{equation}
+p(m,t)\triangleq p\left(m,k^*(m,t)\right)=\max_{k\in\mathcal{K}(m,t)}p(m,k).\label{eqn:powerdefi}
+\end{equation}
+\subsection{Request Model}
+In each slot, each  user submits content requests to the BS.
+Let $A_{m,k}(t)$ denote the number of the new request arrivals for content $m$ from user $k$ at the end of slot $t$, where $m\in\mathcal{M}$ and $k\in\mathcal{K}$.
+We assume that $A_{m,k}(t)$ is i.i.d. over slots according to a general distribution.
+Let $\mathbf{A}(t)=(A_{m,k}(t))_{m\in\mathcal{M}, k\in\mathcal{K}}$ denote the request arrival matrix at slot $t$.
+The BS maintains request queues for different contents. The request queues are implemented using \emph{counters} and no data is stored in these request queues.
+In the following, we introduce two request queue models for the uniform and nonuniform cases, respectively.
+\subsubsection{Uniform Case}  In the uniform case, once content $m$ is multicasted using transmission power $p(m)$, all the users can receive content $m$. Therefore, we do not differentiate the requests for each content at the user level.
+Specifically, the BS maintains a separate request queue for each content $m\in\mathcal{M}$.
+Let $Q_m(t)\in\mathcal{Q}_m\triangleq\{0,1,\cdots,N_m\}$ denote the request queue length for content $m$ at the beginning of slot $t$.\footnote{For technical tractability, we assume that $N_m$ and $N_{m,k}$ are finite positive integers, which can be sufficiently large.}
+As illustrated in Section II-B, if content $m$ is scheduled for transmission at slot $t$ (i.e., $u(t)=m$), all the pending requests for content $m$ are satisfied, i.e., the request queue for content $m$ is emptied.
+Thus, the request queue dynamics for content $m$ is as follows:
+\begin{equation}
+  Q_{m}(t+1)=\min\{\mathbf{1}(u(t)\neq m)Q_m(t)+A_m(t),N_m\},\label{eqn:queue-ho}
+\end{equation}
+where $A_m(t)\triangleq\sum_kA_{m,k}(t)$ denotes the total number of the request arrivals for content $m$ at the end of slot $t$.
+Let $\mathbf{Q}(t)\triangleq(Q_m(t))_{m\in\mathcal{M}}\in\bm{\mathcal{Q}}$ denote the request queue state vector at the beginning of slot $t$ in the uniform case, where $\bm{\mathcal{Q}}\triangleq\prod_{m\in\mathcal{M}}\mathcal{Q}_m$ denotes the request queue state space in the uniform case.
+\subsubsection{Nonuniform Case}  In the nonuniform case, different transmission powers are required to deliver a content to different users, as illustrated in Section II-B.
+Therefore, we  differentiate the requests for each content at the user level.
+Specifically, the BS maintains a separate request queue for each content-user pair $(m,k)\in\mathcal{M}\times\mathcal{K}$.
+Let $Q_{m,k}(t)\in\mathcal{Q}_{m,k}\triangleq\{0,1,\cdots,N_{m,k}\}$ denote the request queue length for content-user pair $(m,k)$ at the beginning of slot $t$.
+Therefore, $\mathcal{K}(m,t)$ can  be expressed in terms of the request queue state, i.e., $\mathcal{K}(m,t)=\{k|Q_{m,k}(t)>0\}$. The request queue dynamics for content-user pair $(m,k)$ is as follows:
+\begin{equation}
+  Q_{m,k}(t+1)=\min\{\mathbf{1}(u(t)\neq m)Q_{m,k}(t)+A_{m,k}(t),N_{m,k}\}.\label{eqn:queue-he}
+\end{equation}
+Let $\mathbf{Q}(t)\triangleq(Q_{m,k}(t))_{m\in\mathcal{M}, k\in\mathcal{K}}\in\bm{\mathcal{Q}}$ denote the request queue state matrix at the beginning of slot $t$ in the nonuniform case, where $\bm{\mathcal{Q}}\triangleq\prod_{m\in\mathcal{M}, k\in\mathcal{K}}\mathcal{Q}_{m,k}$ denotes the request queue state space in the nonuniform case. Let $\mathbf{Q}_m(t)\triangleq(Q_{m,k}(t))_{k\in\mathcal{K}}$ denote the request queue state vector for content $m$ at the beginning of slot $t$ in the nonuniform case.
+\section{Problem Formulation and Optimality Equation}
+%In this section, we first formulate the stochastic optimization problem. Then, we obtain the optimality equation.
+\subsection{Problem Formulation}
+ Given an observed request queue state, the multicast scheduling action $u$ is determined according to a stationary policy defined below.
+\begin{definition}[\text{Stationary Multicast Scheduling Policy}]
+  A stationary multicast scheduling policy $\mu$ is a mapping from the request queue state $\mathbf{Q}\in\bm{\mathcal{Q}}$ to the multicast scheduling action $u\in\mathcal{M}$, where $\mu(\mathbf{Q})=u$.
+\label{definition:definition1}
+\end{definition}
+
+ By the queue dynamics in \eqref{eqn:queue-ho} or \eqref{eqn:queue-he}, the induced random process $\{\mathbf{Q}(t)\}$ under policy $\mu$ is a controlled Markov chain.
+We restrict our attention to stationary unichain policies\footnote{A unichain policy is a policy, under which the induced Markov chain has a single recurrent class (and possibly some transient states)\cite{bertsekas}.}.
+For a given stationary unichain policy $\mu$, the average delay cost is defined as\footnote{By Little's law, \eqref{eqn:delay} is related to the average delay.}
+%For a given stationary unichain policy $\mu$, by Little's law, the average delay cost is defined as
+\begin{equation}
+  \bar{d}(\mu)\triangleq\limsup_{T\to\infty}\frac{1}{T}\sum_{t=1}^T \mathbb{E}\left[d\left(\mathbf{Q}(t)\right)\right],\label{eqn:delay}
+\end{equation}
+where the expectation is taken w.r.t. the measure induced by the policy $\mu$, $d\left(\mathbf{Q}(t)\right)\triangleq\sum_mQ_m(t)$ in the uniform case and $d\left(\mathbf{Q}(t)\right)\triangleq\sum_{m,k}Q_{m,k}(t)$ in the nonuniform case.
+By \eqref{eqn:fetchcost} and \eqref{eqn:powerdefi}, the average fetching and power costs are given by
+ \begin{align}
+  \bar{f}(\mu)&\triangleq\limsup_{T\to\infty}\frac{1}{T}\sum_{t=1}^T \mathbb{E}\left[f\left(u(t)\right)\right],\label{eqn:fetching}\\
+  \bar{p}(\mu)&\triangleq\limsup_{T\to\infty}\frac{1}{T}\sum_{t=1}^T \mathbb{E}\left[p(\mathbf{Q}(t),u(t))\right].\label{eqn:power}
+\end{align}
+Here, with abuse of notation, we also use $p(\mathbf{Q}(t),u(t))$ to represent $p(u(t),t)$ given in \eqref{eqn:powerdefi}, as  $\mathcal{K}(u(t),t)=\{k|Q_{u(t),k}(t)>0\}$.
+ Therefore, under a given stationary unichain policy $\mu$, the average system cost (weighted sum cost) is defined as
+ \begin{align}
+  \bar{g}(\mu)&\triangleq\bar{d}(\mu)+w_f\bar{f}(\mu)+w_p\bar{p}(\mu)\nonumber\\
+  &=\limsup_{T\to\infty}\frac{1}{T}\sum_{t=1}^T \mathbb{E}\left[g(\mathbf{Q}(t),u(t))\right],\label{eqn:cost}
+\end{align}
+where $w_f$ and $w_p$  are the associated weights for the fetching and power costs, respectively, and $g(\mathbf{Q},u)\triangleq d\left(\mathbf{Q}\right)+w_ff(u)+w_pp(\mathbf{Q},u)$ is the per-stage cost.
+
+We wish to find an optimal multicast scheduling policy to minimize the average system cost $\bar{g}(\mu)$ in \eqref{eqn:cost}.
+\begin{problem}[System Cost Minimization Problem]
+  \begin{equation}
+  \bar{g}^*\triangleq\min_{\mu}\limsup_{T\to\infty}\frac{1}{T}\sum_{t=1}^T \mathbb{E}\left[g(\mathbf{Q}(t),u(t))\right],\label{eqn:problem1}
+\end{equation}\label{problem:originalproblem}
+\end{problem}
+where $\mu$ is a stationary unchain multicast scheduling policy and $\bar{g}^*$ denotes the minimum system cost achieved by the optimal policy $\mu^*$.
+
+Note that, Problem~\ref{problem:originalproblem} is an infinite horizon average cost MDP, which is well-known to be a difficult problem.
+\subsection{Optimality Equation}
+The optimal multicast scheduling policy $\mu^*$ can be obtained by solving the following Bellman equation.\footnote{All the proofs can be found in the full version in \cite{arxiv}.}
+\begin{lemma}[Bellman Equation]
+  Suppose a scalar $\theta$ and a real-valued function $V(\cdot)$ satisfy:\footnote{Proposition 4.2.1, Proposition 4.2.3 and Proposition 4.2.5 in\cite{bertsekas} provide the conditions for the existence of $\theta$ and $V(\cdot)$.}
+\begin{equation}
+  \theta+V(\mathbf{Q})=\min_{u\in\mathcal{M}}\left\{g(\mathbf{Q},u)+\mathbb{E}\left[V(\mathbf{Q}')\right]\right\},~\forall \mathbf{Q}\in\bm{\mathcal{Q}},\label{eqn:bellman}
+\end{equation}
+where $\mathbf{Q}'=(Q'_m)_{m\in\mathcal{M}}$ with $Q'_m=\min\{\mathbf{1}(u\neq m)Q_m+A_m,N_m\}$ in the uniform case, and $\mathbf{Q}'=(Q'_{m,k})_{m\in\mathcal{M}, k\in\mathcal{K}}$ with $ Q'_{m,k}=\min\{\mathbf{1}(u\neq m)Q_{m,k}+A_{m,k},N_{m,k}\}$ in the nonuniform case.
+Then, $\theta=\bar{g}^*$ is the optimal value to Problem 1 for all initial state $\mathbf{Q}(1)\in\bm{\mathcal{Q}}$ and $V(\cdot)$ is called the value function.
+Furthermore, if $\mu^*(\mathbf{Q})$ attains the minimum in the R.H.S. of \eqref{eqn:bellman} for each $\mathbf{Q}$, then the stationary unichain policy $\mu^*$ is the optimal policy achieving the optimal value $\bar{g}^*$.
+\label{lemma:bellman}
+\end{lemma}
+
+From the Bellman equation in \eqref{eqn:bellman}, we can see that $\mu^*$ depends on the state $\mathbf{Q}$ through the value function $V(\cdot)$. Obtaining $V(\cdot)$ involves solving the Bellman equation for all $\mathbf{Q}$, for which there is no closed-form solution in general\cite{bertsekas}.  Brute force numerical solutions such as value iteration and policy iteration do not typically offer many design insights, and are usually impractical for implementation in practical systems due to the curse of dimensionality\cite{bertsekas}.  Therefore, it is desirable to study the structure of $\mu^*$.
+
+To analyze the structure of $\mu^*$, we also introduce the state-action cost function:
+\begin{equation}
+  J(\mathbf{Q},u)\triangleq g(\mathbf{Q},u)+\mathbb{E}\left[V(\mathbf{Q}')\right].\label{eqn:state_action_func}
+\end{equation}
+Note that $J(\mathbf{Q},u)$ is related to the R.H.S. of the Bellman equation in \eqref{eqn:bellman}.
+In particular, based on Lemma~\ref{lemma:bellman}, the optimal policy $\mu^*$ can be expressed in terms of $J(\mathbf{Q},u)$, i.e.,
+\begin{equation}
+  \mu^*(\mathbf{Q})=\arg\min_{u\in\mathcal{M}} J(\mathbf{Q},u),~\forall \mathbf{Q}\in\bm{\mathcal{Q}}.
+\end{equation}
+In Sections IV and V, we shall analyze the structures of the optimal policies for the uniform and nonuniform cases, respectively, based on the properties of the value function $V(\mathbf{Q})$ and the state-action cost function $J(\mathbf{Q},u)$.
+\section{Optimality Properties in Uniform Case}
+In this section, we consider the uniform case.  We first show that the optimal policy has a switch structure. Then, we show that the switch curve is monotonically non-decreasing for the uniform case with two contents.
+
+%\subsection{Structure of Optimal Policy}
+Problem 1 can be treated as the problem of scheduling a broadcast server to parallel queues with general random arrivals, channel conditions and content sizes.
+Therefore, the structural analysis is more challenging than the existing structural analysis for simple queuing systems (see Section I for the detailed discussion).
+First, by RVIA and the special structures of the request queue dynamics, as well as the power and fetching costs, we have the following property of $V(\mathbf{Q})$.
+\begin{lemma}[Monotonicity of Value Function]
+%$V(\mathbf{Q}^1)\leq V(\mathbf{Q}^2)$,
+In the uniform case, for any $\mathbf{Q}^1$, $\mathbf{Q}^2\in\bm{\mathcal{Q}}$ such that $\mathbf{Q}^2\succeq\mathbf{Q}^1$, we have $V(\mathbf{Q}^2)\geq V(\mathbf{Q}^1)$.\footnote{The notation $\succeq$ indicates component-wise $\geq$.}
+%The value function $V(Q)$ is monotonically non-decreasing in $\mathbf{Q}$, i.e.
+\label{lemma:propertyV1}
+\end{lemma}
+
+%Next, define the state-action cost function as follows.
+%\begin{equation}
+%  J(\mathbf{Q},u)=d(\mathbf{Q})+f(u)+\mathbb{E}_{\mathbf{A}}\left[\tilde{V}(\mathbf{Q},\mathbf{A},u)\right],\label{eqn:state_action_func}
+%\end{equation}
+%where $\mathbf{Q}=(Q_m)_{m\in\mathcal{M}}$, $d(\mathbf{Q})=\sum_mQ_m$ and $\tilde{V}(\mathbf{Q},\mathbf{A},u)=V(\mathbf{Q}')$  with $\mathbf{Q}'=(Q'_m)_{m\in\mathcal{M}}$ and $Q'_m=\{\mathbf{1}(u\neq m)Q_m+A_m,N_m\}$.
+%Note that $J(\mathbf{Q},u)$ is related to the R.H.S. of the Bellman equation in \eqref{eqn:bellman1}.
+Then, based on Lemma~\ref{lemma:propertyV1} and  the special properties of multicasting, we have the following property of $J(\mathbf{Q},u)$.
+\begin{lemma}[Monotonicity of State-Action Cost Function]
+In the uniform case, for any $u,v\in\mathcal{M}$ and $v\neq u$,  $J(\mathbf{Q},u)-J(\mathbf{Q},v)$ is monotonically non-increasing with $Q_u$, i.e.,
+\begin{equation}
+  J(\mathbf{Q}+\mathbf{e}_u,u)-J(\mathbf{Q}+\mathbf{e}_u,v)\leq J(\mathbf{Q},u)-J(\mathbf{Q},v),\label{eqn:propertyJ1}
+\end{equation}
+where $\mathbf{e}_u$ denotes the $1\times M$ vector with all entries 0 except for a 1 in its $u$-th entry.
+\label{lemma:propertyJ1}
+\end{lemma}
+
+%Note that, the property of $J(\mathbf{Q},u)$ in Lemma~\ref{lemma:propertyJ1} is different from the \emph{supermodularity} used in the existing structural analysis.
+Note that, the property of $J(\mathbf{Q},u)$ in Lemma~\ref{lemma:propertyJ1} is similar to the diminishing-return property of submodular functions used in the existing structural analysis.
+Lemma~\ref{lemma:propertyJ1} comes from the special structure introduced by multicasting and is key to analyze the optimality properties.
+Lemma~\ref{lemma:propertyJ1} indicates that, if it is better to multicast content $u$ than $v$ for some state $\mathbf{Q}$ (i.e., $J(\mathbf{Q},u)\leq J(\mathbf{Q},v)$), then it is also better to multicast content $u$ than $v$ for state $\mathbf{Q}+\mathbf{e}_u$ (i.e., $J(\mathbf{Q}+\mathbf{e}_u,u)\leq J(\mathbf{Q}+\mathbf{e}_u,v)$). This leads to the following switch structure of $\mu^*$.
+\begin{theorem}[Switch Structure of Optimal Policy]
+The optimal policy $\mu^*$ in the uniform case has a switch structure, i.e., for all $u\in\mathcal{M}$, we have
+\begin{equation}\label{eqn:switch}
+  \mu^*(\mathbf{Q})=u, \text{if}~Q_u\geq s_u(\mathbf{Q}_{-u}),
+\end{equation}
+where the switch curve for content $u$ is given by
+%\begin{equation}\label{eqn:curve}
+% s(\mathbf{Q}_{-u})\triangleq\left\{
+%                      \begin{array}{ll}
+%                        \min\mathcal{S}(\mathbf{Q}_{-u}), & \hbox{if $\mathcal{S}(\mathbf{Q}_{-u})\neq\emptyset$} \\
+%                        \infty, & \hbox{otherwise}
+%                      \end{array}
+%                    \right.,
+%\end{equation}
+%\begin{equation*}
+\\$~~~~~~~~~
+s_u(\mathbf{Q}_{-u})\triangleq\begin{cases}\min\mathcal{S}_u(\mathbf{Q}_{-u}),  & \text{if}~\mathcal{S}_u(\mathbf{Q}_{-u})\neq\emptyset \\
+            \infty,  &\text{otherwise}
+  \end{cases}
+  $\\
+  %\end{equation*}
+with $\mathcal{S}_u(\mathbf{Q}_{-u})\triangleq\{Q_u| J(\mathbf{Q},u)\leq J(\mathbf{Q},v)~\forall v\in\mathcal{M}, v\neq u\}$.
+ Here, $\mathbf{Q}_{-u}\triangleq(Q_m)_{m\in\mathcal{M},m\neq u}$ denotes the request queue state vector corresponding to all other contents except content $u$.
+\label{theorem:theorem1}
+\end{theorem}
+\begin{figure}[t]
+\begin{minipage}[t]{.5\linewidth}
+\centering
+%\vspace{-0.05cm}
+        \includegraphics[height=3.7cm, width=4cm]{3q.eps}
+        %\includegraphics[scale=.33]{3q.eps}
+        \vspace{-0.1cm}
+\subcaption{\small{Three-content case.}}\label{fig:3q}
+\vspace{-0.1cm}
+\end{minipage}%
+\begin{minipage}[t]{.5\linewidth}
+\centering
+%\vspace{-0.05cm}
+        \includegraphics[height=3.7cm, width=4cm]{2q.eps}
+        %\includegraphics[scale=0.33]{2q.eps}
+        \vspace{-0.1cm}
+\subcaption{\small{Two-content case.}}\label{fig:2q}
+\vspace{-0.1cm}
+\end{minipage}
+\caption{\small{Switch structure of optimal scheduling in the uniform case.}}\label{fig:uniform}
+\vspace{-0.3cm}
+\end{figure}
+%\begin{remark}
+
+Theorem~\ref{theorem:theorem1} indicates that, the request queue state space is divided into $M$ regions corresponding to the $M$ contents,
+and the optimal policy schedules a content for multicasting when the request queue state falls in the region corresponding to the content, as illustrated in Fig.~\ref{fig:3q}.
+In addition, given $\mathbf{Q}_{-u}$, the scheduling for content $u$ is of the threshold type, i.e., content $u$ is scheduled if $Q_u\geq s_u(\mathbf{Q}_{-u})$, as illustrated in Fig.~\ref{fig:2q}.
+This indicates that, it is not efficient to schedule content $u$ when $Q_u$ is small (i.e., the delay cost is small), as a higher power cost (and a higher fetching cost if $u\not\in\mathcal{C}$) is consumed per request for content $u$. This reveals the tradeoff between the delay cost and the power cost (and the fetching cost if $u\not\in\mathcal{C}$) for content $u$.
+%\label{remark:remarkofTheorem1}
+%\end{remark}
+%\subsection{Special Case: Two Contents}
+
+Now, consider the special uniform case with two contents, i.e., $M=2$. By Theorem~\ref{theorem:theorem1}, we can see that, for $M=2$, either one of the two switch curves, i.e., $s_1(Q_2)$ and $s_2(Q_1)$, is sufficient to characterize the optimal policy.
+Moreover, by Lemma \ref{lemma:propertyV1} and Lemma \ref{lemma:propertyJ1}, $s_1(Q_2)$ and $s_2(Q_1)$ have the following property.
+ \begin{lemma}[Monotonicity of Switch Curve] For the uniform case with two contents, the switch curves $s_1(Q_2)$ and $s_2(Q_1)$ of the optimal policy are monotonically non-decreasing in $Q_2$ and $Q_1$, respectively.
+\label{lemma:propertyofswitch}
+\end{lemma}
+
+Fig.~\ref{fig:2q} illustrates the monotonicity of the switch curves in Lemma~\ref{lemma:propertyofswitch}.
+Theorem~\ref{theorem:theorem1} and Lemma~\ref{lemma:propertyofswitch} provide design insights for multicast scheduling in practical cache-enabled content-centric wireless networks.
+For example, it can be used to derive computationally efficient algorithms by reducing the space of possible optimal policies, as illustrated in Table~\ref{reduction}.
+\begin{table}[h]
+%\renewcommand{\arraystretch}{0.8}
+%\scriptsize
+%\small
+%\multirow{3}{*}{\tabincell{c}{\\Queue\\Size}}
+%\vspace{-0.05cm}
+%\begin{adjustbox}{max width=0.49\textwidth}
+\begin{tabular}{c|cc}
+\toprule
+%\hline
+\tabincell{c}{Queue \\Size}&\tabincell{c}{Policy in \\ Definition 1}& \tabincell{c}{Policy with Monotonically \\ Non-decreasing Switch Curves} \\
+\midrule
+$(N_1,N_2)$&$2^{(N_1+1)(N_2+1)}$ & $N_1+N_2+2 \choose N_1+1$\\
+\midrule
+$(4,4)$&$3.36\times 10^7$&$252$\\
+\midrule
+$(8,8)$&$2.42\times 10^{24}$&$48620$\\
+\bottomrule
+\end{tabular}
+ % \end{adjustbox}
+\centering
+%\vspace{-0.05cm}
+\caption{\small{Policy space size in the uniform case at $M=2$.}}\label{reduction}
+\vspace{-0.2cm}
+\end{table}
+\section{Optimality Properties in Nonuniform Case}
+In this section, we characterize the structure of the optimal policy for the nonuniform case.
+Note that, different from the uniform case, the power cost $p(\mathbf{Q},u)$ in the nonuniform case also depends on the request queue state  $\mathbf{Q}$.
+Therefore, due to the coupling among the request queues, the structural analysis for the nonuniform case is more challenging than that for the uniform case.
+To analyze the structure of the optimal policy, we first introduce a new notation.
+For each $m$, define $\mathbf{Q}_m^2\trianglerighteq\mathbf{Q}_m^1$ if and only if,
+\begin{equation*}
+  \left\{
+    \begin{array}{ll}
+      Q^2_{m,k}\geq Q^1_{m,k}, & \hbox{if $k\leq \max\{k|Q^1_{m,k}>0\}$;} \\
+      Q^2_{m,k}=Q^1_{m,k}, & \hbox{otherwise.}
+    \end{array}
+  \right.\forall k.
+\end{equation*}
+Define $\mathbf{Q}^2\trianglerighteq\mathbf{Q}^1$ if and only if $\mathbf{Q}_m^2\trianglerighteq\mathbf{Q}_m^1$ for all $m$.
+
+By RVIA and the special structures of the request queue dynamics, as well as the power and fetching costs, we can show the following property of $V(\mathbf{Q})$.
+\begin{lemma}[Partial Monotonicity of Value Function]
+%$V(\mathbf{Q}^1)\leq V(\mathbf{Q}^2)$,
+In the nonuniform case, for any $\mathbf{Q}^1$, $\mathbf{Q}^2\in\bm{\mathcal{Q}}$ such that $\mathbf{Q}^2\trianglerighteq\mathbf{Q}^1$, we have $V(\mathbf{Q}^2)\geq V(\mathbf{Q}^1)$.
+%The value function $V(Q)$ is monotonically non-decreasing in $\mathbf{Q}$, i.e.
+\label{lemma:propertiesofV2}
+\end{lemma}
+
+Then, based on Lemma \ref{lemma:propertiesofV2} and the special properties of multicasting in the nonuniform channel case, we have the following property of $J(\mathbf{Q},u)$.
+
+\begin{lemma}[Partial Monotonicity of State-Action Cost Function]
+In the nonuniform case, for any $u,v\in\mathcal{M}$, $v\neq u$ and $k\leq \max\{k|Q_{u,k}>0\}$,  we have
+\begin{equation}
+  J(\mathbf{Q}+\mathbf{E}_{u,k},u)-J(\mathbf{Q}+\mathbf{E}_{u,k},v)\leq J(\mathbf{Q},u)-J(\mathbf{Q},v), \label{eqn:propertyJ2}
+\end{equation}
+where $\mathbf{E}_{u,k}$ denotes the $M\times K$ matrix with all entries 0 except for a 1 in its $(u,k)$-th entry.
+\label{lemma:propertyJ2}
+\end{lemma}
+
+
+Lemma~\ref{lemma:propertyJ2} indicates that if it is better to multicast content $u$ than content $v$ for some state $\mathbf{Q}$ (i.e., $J(\mathbf{Q},u)\leq J(\mathbf{Q},v)$), then it is also better to multicast content $u$ than $v$ for state $\mathbf{Q}+\mathbf{E}_{u,k}$ (i.e., $J(\mathbf{Q}+\mathbf{E}_{u,k},u)\leq J(\mathbf{Q}+\mathbf{E}_{u,k},v)$). Thus, we have the following theorem.
+\begin{theorem}[Partial Switch Structure of Optimal Policy]
+The optimal policy $\mu^*$ in the nonuniform case has a partial switch structure, i.e., for all $u\in\mathcal{M}$ and $k\in\mathcal{K}$, we have
+\begin{equation}\label{eqn:switch2}
+~~~~~~~~ ~~ \mu^*(\mathbf{Q})=u,~ \hbox{\parbox[t]{.25\textwidth}{if $Q_{u,k}\geq s_{u,k}(\mathbf{Q}_{-u,-k})$ and$~~~~$   ~~~~~~~~~~~~~~~~condition (a) or (b) holds,}}
+\end{equation}
+where condition (a) is $k<k^\dag(k,\mathbf{Q}_u)$, condition (b) is $k> k^\dag(k,\mathbf{Q}_u)$ and $s_{u,k}(\mathbf{Q}_{-u,-k})>0$, and the switch curve for content-user pair $(u,k)$ is given by
+%\begin{equation*}
+\\$s_{u,k}(\mathbf{Q}_{-u,-k})\triangleq\begin{cases}\min\mathcal{S}_{u,k}(\mathbf{Q}_{-u,-k}),  & \text{if}~\mathcal{S}_{u,k}(\mathbf{Q}_{-u,-k})\neq\emptyset \\
+            \infty,  &\text{otherwise}
+  \end{cases}$\\
+  %\end{equation*}
+with $\mathcal{S}_{u,k}(\mathbf{Q}_{-u,-k})\triangleq\{Q_{u,k}| J(\mathbf{Q},u)\leq J(\mathbf{Q},v)~\forall v\in\mathcal{M}, v\neq u\}$.
+Here, $\mathbf{Q}_{-u,-k}\triangleq(Q_{m,i})_{m\in\mathcal{M}, m\neq u, i\in\mathcal{K}, i\neq k}$ denotes the request queue state matrix corresponding to all the other content-user pairs except the content-user pair $(u,k)$, and $k^\dag(k,\mathbf{Q}_u)\triangleq\max\{i|Q_{u,i}>0,i\neq k\}$.
+\label{theorem:theorem2}
+\end{theorem}
+
+From Theorem~\ref{theorem:theorem2}, we can see that, the structure of the optimal policy in the nonuniform case is very similar to the one in the uniform case. The only difference is that, the structural property for $k> k^\dag(k,\mathbf{Q}_u)$ and $s_{u,k}(\mathbf{Q}_{-u,-k})=0$ depends on the specific channel asymmetry among the users and is still not known in general. Insights from Theorem~\ref{theorem:theorem2} are similar to those from Theorem~\ref{theorem:theorem1}.
+%\section{Conclusion}
+%In this paper, we consider the optimal dynamic multicast scheduling to jointly minimize the average delay, power and  fetching costs for cache-enabled content-centric wireless networks.
+%We formulate this stochastic optimization problem as an infinite horizon average cost MDP.
+%We show that the optimal policy has a switch structure in the uniform case and a partial switch structure in the nonuniform case. Moreover, in the uniform case with two contents, we show that the switch curve is monotonically non-decreasing. The optimality properties obtained in this paper can provide design insights for multicast scheduling in practical cache-enabled content-centric wireless networks.
+\bibliographystyle{IEEEtran}
+\bibliography{review}
+
+\end{document}
